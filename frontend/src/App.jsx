@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { fetchProjects, fetchQuestions, createQuestion, checkBackendHealth, updateQuestion } from "./api";
 import "./styles.css";
 
@@ -13,6 +13,7 @@ export default function App() {
 
   const [formData, setFormData] = useState({
     student_name: "",
+    question_type: "general",
     content: "",
     file: null,
   });
@@ -59,13 +60,13 @@ export default function App() {
 
   const openAskModal = () => {
     setEditingId(null);
-    setFormData({ student_name: "", content: "", file: null });
+    setFormData({ student_name: "", question_type: "general", content: "", file: null });
     setModalOpen(true);
   };
 
   const openEditModal = (q) => {
     setEditingId(q.id);
-    setFormData({ student_name: q.student_name, content: q.content, file: null });
+    setFormData({ student_name: q.student_name, question_type: q.question_type, content: q.content, file: null });
     setModalOpen(true);
   };
 
@@ -79,10 +80,7 @@ export default function App() {
     try {
       const data = new FormData();
       data.append("project", activeProject.id);
-      
-      // Removed question_type from form so default it
-      data.append("question_type", "general");
-      
+
       Object.keys(formData).forEach((key) => {
         if (formData[key] !== null && formData[key] !== "") {
           data.append(key, formData[key]);
@@ -162,6 +160,7 @@ export default function App() {
                   <div className="timestamp">🕒 {formatDate(q.created_at)}</div>
                 </div>
                 <div className="badges">
+                  <span className={`badge ${q.question_type}`}>{q.question_type === "bug" ? "Bug" : q.question_type === "stuck" ? "Stuck" : "General"}</span>
                   <span className={`badge ${q.status}`}>{q.status}</span>
                   <button className="edit-btn" onClick={() => openEditModal(q)}>✏️ Edit</button>
                 </div>
@@ -220,13 +219,22 @@ export default function App() {
               </div>
 
               <div className="form-group">
-                <label>Describe the issue in detail</label>
-                <textarea 
-                  name="content" 
-                  rows="5" 
-                  value={formData.content} 
-                  onChange={handleChange} 
-                  required 
+                <label>Question Type</label>
+                <select name="question_type" value={formData.question_type} onChange={handleChange}>
+                  <option value="general">General Question</option>
+                  <option value="bug">Bug / Error</option>
+                  <option value="stuck">Stuck Point</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label>Describe your question or issue in detail</label>
+                <textarea
+                  name="content"
+                  rows="5"
+                  value={formData.content}
+                  onChange={handleChange}
+                  required
                   placeholder="I followed the tutorial until step 4..."
                 ></textarea>
               </div>
