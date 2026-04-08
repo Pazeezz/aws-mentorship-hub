@@ -17,92 +17,44 @@ AWS Mentorship Hub is a comprehensive Q&A platform tailored for the AWS Mentorsh
 
 ## 💻 Local Development Setup (Without Docker)
 
-To run the frontend and backend separately for local development and debugging, follow the steps below.
+You can run the frontend and backend separately for active development. This will use a local SQLite database by default.
 
-### Prerequisites
-- Node.js (v18+)
-- Python (3.10+)
-
-### 1. Backend Setup
-
-1. Navigate to the backend directory:
-   ```bash
-   cd backend
-   ```
-2. Create and activate a virtual environment:
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On macOS/Linux
-   # On Windows use: venv\Scripts\activate
-   ```
-3. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-4. Run database migrations:
-   ```bash
-   python manage.py migrate
-   ```
-5. (Optional) Create a superuser to access the Django Administration panel and add initial Projects:
-   ```bash
-   python manage.py createsuperuser
-   ```
-6. Start the development server:
-   ```bash
-   python manage.py runserver
-   ```
-   The backend API will be available at `http://localhost:8000/`.
-
-### 2. Frontend Setup
-
-1. Open a new terminal and navigate to the frontend directory:
-   ```bash
-   cd frontend
-   ```
-2. Install Node modules:
-   ```bash
-   npm install
-   ```
-3. Start the Vite development server:
-   ```bash
-   npm run dev
-   ```
-   The frontend will be available at `http://localhost:5173/`. 
-   
-*(Note: When running without Docker, requests from the frontend will go to the configured API `VITE_API_BASE_URL` or default endpoints. You may need to ensure your Django application allows CORS for the Vite dev server).*
-
-## 🐳 Docker Deployment
-
-The application is fully containerized, making it easy to run the entire stack (Frontend, Backend, Postgres Database, and Nginx) with a single command.
-
-### Prerequisites
-- Docker
-- Docker Compose
-
-### Running the Stack
-
-1. From the project root, build and start the containers in detached mode:
-   ```bash
-   docker-compose up --build -d
-   ```
-2. Run backend database migrations:
-   ```bash
-   docker-compose exec backend python manage.py migrate
-   ```
-3. Access the application:
-   - **Frontend Application:** http://localhost
-   - **Backend API Base:** http://localhost/api/
-   - **Django Admin Panel:** http://localhost/admin/
-
-### Stopping the Services
-To stop running the containers without removing data:
+**Terminal 1: Backend**
 ```bash
-docker-compose stop
+cd backend
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py runserver 8000
 ```
-To bring down the containers completely and cleanly:
+
+**Terminal 2: Frontend**
 ```bash
-docker-compose down
+cd frontend
+npm install
+VITE_API_BASE_URL="http://localhost:8000/api" npm run dev
 ```
+
+Then navigate to:
+- Frontend: `http://localhost:5173`
+- Backend API: `http://localhost:8000/api/`
+
+## 🐳 Running with Docker Compose
+
+Running with Docker spins up the full production-like environment with PostgreSQL and an Nginx reverse proxy.
+*(Note: Be aware that the Docker environment creates a fresh Postgres database, which is separate from your local SQLite database!)*
+
+```bash
+cp .env.example .env
+# Edit .env with your PostgreSQL credentials & AWS keys
+docker compose up --build -d
+```
+
+Because Nginx handles the reverse proxying on port 80, you can access everything smoothly here:
+- **Main Application**: `http://localhost/`
+- **Backend API**: `http://localhost/api/`
+- **Backend Health Check**: `http://localhost/health/`
 
 ## 📚 Features
 
@@ -110,6 +62,21 @@ docker-compose down
 - **Q&A System:** Students can ask questions, attaching context through files.
 - **Instructors Dashboard:** Built-in Django Admin interface for instructors to manage items and provide answers.
 - **Health Checks:** Built-in backend health status display in the UI to alert users if the server experiences downtime.
+
+## 🔐 Logging in as Admin
+
+The application uses Django's built-in administration panel. To log in as an administrator to manage projects and answers, follow these steps:
+
+1. **Create a Superuser account:**
+   - **Local Development:** In your backend terminal, run: `python manage.py createsuperuser`
+   - **Docker:** In the project root, run: `docker compose exec backend python manage.py createsuperuser`
+   *(You will be prompted to enter a username, email, and password).*
+
+2. **Access the Dashboard:**
+   - **Local Development:** Navigate to `http://localhost:8000/admin/`
+   - **Docker:** Navigate to `http://localhost/admin/`
+
+3. **Manage the Hub:** Log in using your new credentials. You can now create active Projects for your students, which will immediately become visible on the landing page!
 
 ## 📄 License
 
